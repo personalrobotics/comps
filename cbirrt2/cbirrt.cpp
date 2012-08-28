@@ -1263,7 +1263,11 @@ bool CBirrtPlanner::_CreateTraj(TrajectoryBasePtr ptraj)
     std::vector<dReal> velocitylimits(_parameters->_vConfigLowerLimit.size(),1);
     _parameters->_vConfigVelocityLimit = velocitylimits;
     _parameters->_vConfigAccelerationLimit = velocitylimits;
+    _parameters->_vConfigResolution = velocitylimits;
 
+    std::vector<dReal> initconfig;
+    ptraj->GetWaypoints(0,0,initconfig);
+    _parameters->vinitialconfig = initconfig;
 
     _ProcessPostPlanners(_pRobot,ptraj);
 
