@@ -1236,10 +1236,12 @@ void CBirrtProblem::GetSupportPolygon(std::vector<string>& supportlinks, std::ve
                 _listGeomProperties = vlinks[j]->GetGeometries();
 
                 //compute AABBs for the link at identity
-                
-                if( _listGeomProperties.size() == 1){
-                    Transform _t = _listGeomProperties.front()->GetTransform().inverse();
-                    bounds = _listGeomProperties.front()->ComputeAABB(_t);
+                for(int k = 0; k < _listGeomProperties.size(); k++)
+                {
+                //if( _listGeomProperties.size() == 1){
+                    Transform _t = _listGeomProperties[k]->GetTransform().inverse();
+                    //bounds = _listGeomProperties[k]->ComputeAABB(_t);
+                    bounds = _listGeomProperties[k]->ComputeAABB(_listGeomProperties[k]->GetTransform());
                     Transform offset = vlinks[j]->GetTransform()*_t;
                     points.push_back(offset*Vector(bounds.pos.x + bounds.extents.x,bounds.pos.y + bounds.extents.y,bounds.pos.z - bounds.extents.z));
                     points.push_back(offset*Vector(bounds.pos.x - bounds.extents.x,bounds.pos.y + bounds.extents.y,bounds.pos.z - bounds.extents.z));
@@ -1257,23 +1259,26 @@ void CBirrtProblem::GetSupportPolygon(std::vector<string>& supportlinks, std::ve
 
         }
     }
-
+    RAVELOG_INFO("Num support points in to qhull: %d\n",points.size());
     std::vector<coordT> pointsin(points.size()*2);
-    
+    std::vector<RaveVector<float> > plotvecs(points.size());
     for(int i = 0; i < points.size();i++)
     {
         pointsin[i*2 + 0] = points[i].x;
         pointsin[i*2 + 1] = points[i].y;
+        plotvecs[i] = RaveVector<float>(points[i].x,points[i].y,points[i].z);
     }
+    //GraphHandlePtr graphptr1 = GetEnv()->plot3(&plotvecs[0].x,plotvecs.size(),sizeof(plotvecs[0]),5, RaveVector<float>(1,0, 0, 1));
+    //graphptrs.push_back(graphptr1);
 
     coordT* pointsOut = NULL;
 
     int numPointsOut = 0;
 
     convexHull2D(&pointsin[0], points.size(), &pointsOut, &numPointsOut);
-    RAVELOG_INFO("numpoints: %d\n",numPointsOut);
+    RAVELOG_INFO("Num support points out of qhull:: %d\n",numPointsOut);
     
-    std::vector<Vector> tempvecs(numPointsOut +1);
+    std::vector<RaveVector<float> > tempvecs(numPointsOut +1);
     polyx.resize(numPointsOut);
     polyy.resize(numPointsOut);
     dReal centerx = 0;
@@ -1293,15 +1298,17 @@ void CBirrtProblem::GetSupportPolygon(std::vector<string>& supportlinks, std::ve
     {
         polyx[i] = polyscale.x*(polyx[i] - centerx) + centerx + polytrans.x;       
         polyy[i] = polyscale.y*(polyy[i] - centery) + centery + polytrans.y;
-        tempvecs[i] = Vector(polyx[i],polyy[i],0);
+        tempvecs[i] = RaveVector<float>(polyx[i],polyy[i],0);
     }
 
     
 
     //close the polygon
-    tempvecs[tempvecs.size()-1] = Vector(polyx[0],polyy[0],0);
-    //GraphHandlePtr graphptr = GetEnv()->drawlinestrip(&tempvecs[0].x,tempvecs.size(),sizeof(tempvecs[0]),5, RaveVector<float>(0, 1, 1, 1));
-    //graphptrs.push_back(graphptr);
+    tempvecs[tempvecs.size()-1] = RaveVector<float>(polyx[0],polyy[0],0);
+    GraphHandlePtr graphptr = GetEnv()->drawlinestrip(&tempvecs[0].x,tempvecs.size(),sizeof(tempvecs[0]),5, RaveVector<float>(0, 1, 1, 1));
+    graphptrs.push_back(graphptr);
+
+
     free(pointsOut);
 }
 
