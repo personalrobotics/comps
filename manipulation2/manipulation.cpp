@@ -2030,10 +2030,14 @@ vector<dReal> ManipulationProblem::GetWristPoints(istream& cmd)
     ifstream infile(filename.c_str(),ios::in);
     if( ptraj->deserialize(infile) ) {
         //FOREACH(itpoint, ptraj->GetPoints()){
-        for(int i =0; i < ptraj->GetNumWaypoints(); i++)
+
+        TrajectoryBasePtr pfulltraj = RaveCreateTrajectory(GetEnv(),robot->GetDOF());
+        robot->GetFullTrajectoryFromActive(pfulltraj, ptraj);
+
+        for(int i =0; i < pfulltraj->GetNumWaypoints(); i++)
         {
             std::vector<dReal> vtemp;
-            ptraj->GetWaypoint(i,vtemp);
+            pfulltraj->GetWaypoint(i,vtemp);
             robot->SetJointValues(vtemp);
             Vector eepos = robot->GetActiveManipulator()->GetEndEffectorTransform().trans;
             eeposes.push_back(eepos.x);            
