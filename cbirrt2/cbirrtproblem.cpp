@@ -532,6 +532,7 @@ void CBirrtProblem::WriteTraj(TrajectoryBasePtr ptraj, string filename)
     //OpenRAVE::planningutils::RetimeActiveDOFTrajectory(ptraj, robot,false,1,"LinearTrajectoryRetimer");
 
     ofstream outfile(filename.c_str(),ios::out);
+    outfile.precision(16); 
     //pfulltraj->Write(outfile, Trajectory::TO_IncludeTimestamps|Trajectory::TO_IncludeBaseTransformation);
     ptraj->serialize(outfile);
     outfile.close();
@@ -1326,6 +1327,7 @@ bool CBirrtProblem::Traj(ostream& sout, istream& sinput)
     //ptraj->Init(robot->GetConfigurationSpecification());
 
     ifstream infile(filename.c_str(),ios::in);
+    infile.precision(16); 
     ptraj->deserialize(infile);
 
     RAVELOG_VERBOSE("executing traj\n");
