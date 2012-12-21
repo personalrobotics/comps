@@ -531,6 +531,47 @@ void CBirrtProblem::WriteTraj(TrajectoryBasePtr ptraj, string filename)
     //pfulltraj->CalcTrajTiming(robot, pfulltraj->GetInterpMethod(), true, false);
     //OpenRAVE::planningutils::RetimeActiveDOFTrajectory(ptraj, robot,false,1,"LinearTrajectoryRetimer");
 
+    //print out groups
+//    int numgroups = ptraj->GetConfigurationSpecification()._vgroups.size();
+//    RAVELOG_INFO("num groups in traj: %d\n",numgroups);
+//    for(int i = 0; i < numgroups; i++)
+//    {
+//        RAVELOG_INFO("name %d: %s\n",i,ptraj->GetConfigurationSpecification()._vgroups[i].name.c_str());
+//    }
+
+
+
+    //this is the equivalent of GetFullTrajectoryFromActive
+    ConfigurationSpecification activespec = ptraj->GetConfigurationSpecification();
+    std::set<KinBodyPtr> sbodies;
+    FOREACH(itgroup, activespec._vgroups) {
+      stringstream ss(itgroup->name);
+      string type, bodyname;
+      ss >> type;
+      ss >> bodyname;
+      //RAVELOG_INFO("Bodyname: %s\n",bodyname.c_str());
+      if(GetEnv()->GetKinBody(bodyname))
+      {
+        sbodies.insert(GetEnv()->GetKinBody(bodyname));
+      }
+    }
+
+    ConfigurationSpecification spec;
+    set <KinBodyPtr>::iterator si;
+    for (si=sbodies.begin(); si!=sbodies.end(); si++)
+    {
+        std::vector<int> indices((*si)->GetDOF());
+        for(int i = 0; i < (*si)->GetDOF(); ++i) {
+            indices[i] = i;
+        }
+        ConfigurationSpecification tempspec = (*si)->GetConfigurationSpecificationIndices(indices, "linear");
+        tempspec.AddDerivativeGroups(1,true); // add velocity + timestamp
+        spec += tempspec;
+    }
+
+    OpenRAVE::planningutils::ConvertTrajectorySpecification(ptraj, spec);
+
+
     ofstream outfile(filename.c_str(),ios::out);
     outfile.precision(16); 
     //pfulltraj->Write(outfile, Trajectory::TO_IncludeTimestamps|Trajectory::TO_IncludeBaseTransformation);
