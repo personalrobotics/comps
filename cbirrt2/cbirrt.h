@@ -60,11 +60,11 @@ public:
     inline void Print() {
         if( RaveGetDebugLevel() ) {
             stringstream s;
-            s << L"ID: " << _iID << L" Parent: " << _iParent << " ";
+            s << "ID: " << _iID << " Parent: " << _iParent << " ";
             for(unsigned int i = 0; i < _data.size();i++) {
                 s << _data[i]<<" ";
             }
-            s << L"\n";
+            s << "\n";
             RAVELOG_DEBUG(s.str().c_str());
         }
     }
@@ -130,7 +130,6 @@ public:
         CBirrtPlanner * _planner;
         std::vector<dReal> _lowerLimit;
         std::vector<dReal> _upperLimit;
-
         //variables for tree extension
         dReal* startConfig;
         bool bExtendConnect;
@@ -258,6 +257,7 @@ private:
 
     std::vector<dReal> _lowerLimit;  //!< joint limits
     std::vector<dReal> _upperLimit;
+    std::vector<bool> _viscircular;
     std::vector<dReal> _validRange;
     std::vector<dReal>  checkConfig;
 
