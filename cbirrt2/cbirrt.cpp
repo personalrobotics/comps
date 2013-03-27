@@ -976,7 +976,8 @@ bool CBirrtPlanner::_CheckCollision(std::vector<dReal>& pConfig)
         //RAVELOG_DEBUG("CBirrt collision: %S:%S with %S:%S\n", preport->plink1->GetParent()->GetName(), preport->plink1->GetName(), preport->plink2->GetParent()->GetName(), preport->plink2->GetName());
     }
 
-    if(GetEnv()->CheckSelfCollision(KinBodyConstPtr(_pRobot), preport))
+    //GetEnv()->CheckSelfCollision(KinBodyConstPtr(_pRobot), preport) // doesn't work for grabbed bodies
+    if(_pRobot->CheckSelfCollision(preport))
     {
         RAVELOG_DEBUG("CBirrt self-collision: %s:%s with %s:%s\n", preport->plink1->GetParent()->GetName().c_str(), preport->plink1->GetName().c_str(), preport->plink2->GetParent()->GetName().c_str(), preport->plink2->GetName().c_str());
 
