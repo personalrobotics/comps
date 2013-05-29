@@ -475,7 +475,7 @@ void GeneralIK::GetCOGJacobian(Transform taskframe_in, NEWMAT::Matrix& J, Vector
 
         _Jp = _tasktm * _Jp0;
 
-
+        //RAVELOG_INFO("Link name: %s, mass: %f\n",(*itlink)->GetName().c_str(),(*itlink)->GetMass());
         //PrintMatrix(_tasktm.Store(),3,3,"tasktm: ");
         //PrintMatrix(_Jp.Store(),3,_numdofs,"Jp: ");
         //PrintMatrix(_Jr.Store(),3,_numdofs,"Jr: ");
