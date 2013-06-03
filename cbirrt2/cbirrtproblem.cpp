@@ -376,6 +376,7 @@ bool CBirrtProblem::CheckSupport(ostream& sout, istream& sinput)
     KinBodyPtr pheld;
     string tempstring;
     dReal temp;
+    bool bdraw = false;
     Vector polyscale(1.0,1.0,1.0);
     Vector polytrans(0,0,0);
     while(!sinput.eof()) {
@@ -411,6 +412,9 @@ bool CBirrtProblem::CheckSupport(ostream& sout, istream& sinput)
             sinput >> polytrans.y;
             sinput >> polytrans.z;
         }
+        else if(stricmp(cmd.c_str(), "draw") == 0 ){
+            bdraw = true;
+        }
         else break;
 
 
@@ -436,7 +440,10 @@ bool CBirrtProblem::CheckSupport(ostream& sout, istream& sinput)
 
     FORIT(itlink, vlinks) {
         //RAVELOG_INFO("comoffset: %f %f %f\n", (*itlink)->GetCOMOffset().x,(*itlink)->GetCOMOffset().y,(*itlink)->GetCOMOffset().z);
-        GetEnv()->plot3(&(DoubleVectorToFloatVector((*itlink)->GetTransform() * (*itlink)->GetCOMOffset())[0]), 1, 0, (*itlink)->GetMass()/50, Vector(0,0,1),1 );
+        if(bdraw)
+        {
+            GetEnv()->plot3(&(DoubleVectorToFloatVector((*itlink)->GetTransform() * (*itlink)->GetCOMOffset())[0]), 1, 0, (*itlink)->GetMass()/50, Vector(0,0,1),1 );
+        }
         center += ((*itlink)->GetTransform() * (*itlink)->GetCOMOffset() * (*itlink)->GetMass());
         fTotalMass += (*itlink)->GetMass();
     }
@@ -472,13 +479,19 @@ bool CBirrtProblem::CheckSupport(ostream& sout, istream& sinput)
     if(c)    
     {
         //GetEnv()->plot3(center, 1, 0, 0.03, Vector(0,1,0),1 );
-        GetEnv()->drawlinestrip(&(fcgline[0].x),2,sizeof(RaveVector<float>(0, 1, 0, 0)),5, RaveVector<float>(0, 1, 0, 0));
+        if(bdraw)
+        {
+            GetEnv()->drawlinestrip(&(fcgline[0].x),2,sizeof(RaveVector<float>(0, 1, 0, 0)),5, RaveVector<float>(0, 1, 0, 0));
+        }
         RAVELOG_INFO("Supported\n");
         sout << "1";
     }
     else
     {
-        GetEnv()->drawlinestrip(&(fcgline[0].x),2,sizeof(RaveVector<float>(0, 1, 0, 0)),5, RaveVector<float>(1, 0, 0, 0));
+        if(bdraw)
+        {
+            GetEnv()->drawlinestrip(&(fcgline[0].x),2,sizeof(RaveVector<float>(0, 1, 0, 0)),5, RaveVector<float>(1, 0, 0, 0));
+        }
         //GetEnv()->plot3(center, 1, 0, 0.03, Vector(1,0,0),1 );
         RAVELOG_INFO("Not Supported\n");
         sout << "0";
