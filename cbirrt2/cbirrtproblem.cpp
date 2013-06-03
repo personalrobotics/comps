@@ -474,12 +474,14 @@ bool CBirrtProblem::CheckSupport(ostream& sout, istream& sinput)
         //GetEnv()->plot3(center, 1, 0, 0.03, Vector(0,1,0),1 );
         GetEnv()->drawlinestrip(&(fcgline[0].x),2,sizeof(RaveVector<float>(0, 1, 0, 0)),5, RaveVector<float>(0, 1, 0, 0));
         RAVELOG_INFO("Supported\n");
+        sout << "1";
     }
     else
     {
         GetEnv()->drawlinestrip(&(fcgline[0].x),2,sizeof(RaveVector<float>(0, 1, 0, 0)),5, RaveVector<float>(1, 0, 0, 0));
         //GetEnv()->plot3(center, 1, 0, 0.03, Vector(1,0,0),1 );
         RAVELOG_INFO("Not Supported\n");
+        sout << "0";
     }
 
     return true;
