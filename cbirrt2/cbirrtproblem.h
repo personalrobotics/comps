@@ -102,6 +102,9 @@ private:
     /// stops the planner if it is running
     int StopPlanner(ostream& sout, istream& sinput);
 
+    /// clears objects drawn by cbirrt planner and problem
+    bool ClearDrawn(ostream& sout, istream& sinput);
+
     RobotBasePtr robot;
     string _strRRTPlannerName;
 

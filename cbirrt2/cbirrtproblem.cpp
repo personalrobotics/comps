@@ -72,6 +72,10 @@ CBirrtProblem::CBirrtProblem(EnvironmentBasePtr penv) : ProblemInstance(penv)
     RegisterCommand("StopPlanner",boost::bind(&CBirrtProblem::StopPlanner,this,_1,_2),
                     "Stops the planner if it is running");
 
+    RegisterCommand("ClearDrawn",boost::bind(&CBirrtProblem::ClearDrawn,this,_1,_2),
+                    "Clears objects drawn by cbirrt planner and problem");
+
+
     _reusePlanner = false;
     _plannerState = PS_Idle;
     _plannerThread.reset();
@@ -139,6 +143,15 @@ bool CBirrtProblem::SendCommand(std::ostream& sout, std::istream& sinput)
     ProblemInstance::SendCommand(sout,sinput);
     return true;
 }
+
+bool CBirrtProblem::ClearDrawn(ostream& sout, istream& sinput)
+{
+    //lock mutex
+    EnvironmentMutex::scoped_lock lockenv(GetEnv()->GetMutex());
+    graphptrs.clear();
+    return true;
+}
+
 
 int CBirrtProblem::CheckSelfCollision(ostream& sout, istream& sinput)
 {
