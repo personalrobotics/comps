@@ -44,6 +44,12 @@ public:
     
     virtual bool SendCommand(std::ostream& sout, std::istream& sinput);
 
+    class Point2D
+    {
+        public:
+            double x;
+            double y;
+    };
 
 private:
 
@@ -76,6 +82,9 @@ private:
 
     /// function for computing a 2D convex hull
     int convexHull2D(coordT* pointsIn, int numPointsIn, coordT** pointsOut, int* numPointsOut);
+
+    ///function to compute centroid of 2D polygon
+    Point2D compute2DPolygonCentroid(const Point2D* vertices, int vertexCount);
 
     /// compute a support polygon based on what links are touching the ground
     void GetSupportPolygon(std::vector<string>& supportlinks, std::vector<dReal>& polyx, std::vector<dReal>& polyy, Vector polyscale = Vector(1.0,1.0,1.0), Vector polytrans = Vector(1.0,1.0,1.0));
