@@ -1200,11 +1200,11 @@ int CBirrtProblem::convexHull2D(coordT* pointsIn, int numPointsIn, coordT** poin
 
 
     sprintf (flags, "qhull QJ Pp s Tc ");
-    FILE* junk = fopen("qhullout.txt","w");
+    //FILE* junk = fopen("qhullout.txt","w");
 
     exitcode= qh_new_qhull (2, numPointsIn, pointsIn, false,
-                                      flags, junk, junk);
-    fclose(junk);
+                                      flags, NULL, stderr);
+    //fclose(junk);
     *numPointsOut = qh num_vertices;
     *pointsOut = (coordT *)malloc(sizeof(coordT)*(*numPointsOut)*2);
 
