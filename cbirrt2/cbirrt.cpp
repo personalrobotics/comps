@@ -524,8 +524,10 @@ bool CBirrtPlanner::InitPlan(RobotBasePtr  pbase, PlannerParametersConstPtr ppar
 OpenRAVE::PlannerStatus CBirrtPlanner::PlanPath(TrajectoryBasePtr ptraj)
 {
     if(!bInit)
-      RAVELOG_DEBUG("CBirrtPlanner::PlanPath - Error, planner not initialized\n");
-
+    {
+        RAVELOG_INFO("CBirrtPlanner::PlanPath - Error, planner not initialized\n");
+        return CleanUpReturn(false);
+    }
     RAVELOG_DEBUG("Starting PlanPath\n");
 
 

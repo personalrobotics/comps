@@ -452,7 +452,7 @@ bool CBirrtProblem::CheckSupport(ostream& sout, istream& sinput)
     }
 
     FORIT(itlink, vlinks) {
-        //RAVELOG_INFO("comoffset: %f %f %f\n", (*itlink)->GetCOMOffset().x,(*itlink)->GetCOMOffset().y,(*itlink)->GetCOMOffset().z);
+        //RAVELOG_INFO("Name %s comoffset: %f %f %f\n", (*itlink)->GetName().c_str(), (*itlink)->GetCOMOffset().x,(*itlink)->GetCOMOffset().y,(*itlink)->GetCOMOffset().z);
         if(bdraw)
         {
             GetEnv()->plot3(&(DoubleVectorToFloatVector((*itlink)->GetTransform() * (*itlink)->GetCOMOffset())[0]), 1, 0, (*itlink)->GetMass()/50, Vector(0,0,1),1 );
