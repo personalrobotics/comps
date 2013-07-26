@@ -878,15 +878,23 @@ int CBirrtProblem::RunCBirrt(ostream& sout, istream& sinput)
     u32 startplan = timeGetTime();
     RAVELOG_DEBUG("starting planning\n");
     
+    //for error reporting
+    stringstream outputstream;
+    stringstream command;
+    command << "GetOutputMessage";
+
+
 
     /* Send over pointer to our planner state */
     params->pplannerstate = &_plannerState;
 
     if( !_pTCplanner->InitPlan(robot, params) ) {
         RAVELOG_INFO("InitPlan failed\n");
-        sout << 0;
+        _pTCplanner->SendCommand(outputstream,command);
+        sout << 0 << " InitPlan failed\n" << outputstream.str();
         return -1;
     }
+
 
     /* Fix joint limits if current values are outside! */ 
     _limadj_joints.clear();
@@ -935,8 +943,9 @@ int CBirrtProblem::RunCBirrt(ostream& sout, istream& sinput)
     {
         RAVELOG_INFO("Launching planner in new thread\n");
         _plannerThread.reset(new boost::thread(boost::bind(&CBirrtProblem::PlannerWorker, this, _1, _2, _3),_pTCplanner,ptraj, filename));
+        _pTCplanner->SendCommand(outputstream,command);
         _plannerThread->detach();
-        sout << 1;
+        sout << 1 << " " << outputstream.str();
         return 1;
     }
     else
@@ -963,7 +972,9 @@ int CBirrtProblem::RunCBirrt(ostream& sout, istream& sinput)
                     j_upper = _limadj_uppers[j]; 
                     joint->SetLimits(j_lower, j_upper); 
                 }
-                return false;
+                _pTCplanner->SendCommand(outputstream,command);
+                sout << 0 << " CBiRRTProblem: failed to read trajectory " << smoothtrajfilename << endl << outputstream.str();
+                return -1;
             }
 
 
@@ -999,13 +1010,14 @@ int CBirrtProblem::RunCBirrt(ostream& sout, istream& sinput)
 
     if(bSuccess != PS_HasSolution)
     {
-        sout << 0;
+        _pTCplanner->SendCommand(outputstream,command);
+        sout << 0 << " " << outputstream.str();
         return -1;
     }
 
     WriteTraj(ptraj, filename);
-
-    sout << 1;
+    _pTCplanner->SendCommand(outputstream,command);
+    sout << 1 << " " << outputstream.str();
     return 1;
 }
 

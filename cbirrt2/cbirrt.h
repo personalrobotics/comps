@@ -87,6 +87,29 @@ private:
 class CBirrtPlanner : public PlannerBase
 {
 public:
+    CBirrtPlanner(EnvironmentBasePtr penv) : PlannerBase(penv)
+    {
+        __description = ":Interface Author: Dmitry Berenson\nRRT-based algorithm for planning with end-effector pose constraints described by Task Space Region Chains.\n\n`C++ Documentation <http://automation.berkeley.edu/~berenson/docs/cbirrt/index.html>`_";
+        _pActiveNode = NULL;
+        _pConnectNode = NULL;
+
+        //these shouldn't be de-allocated so that multiple calls of this planner are faster
+        _pForwardTree = new NodeTree(false);
+        _pBackwardTree = new NodeTree(true);
+
+        sIgnoredBodies.clear();
+        sIgnoredLinks.clear();
+
+        RegisterCommand("GetOutputMessage",boost::bind(&CBirrtPlanner::GetOutputMessage,this,_1,_2),"returns an ostream containing any errors or other information put there by the planner");
+
+    }
+
+    bool GetOutputMessage(std::ostream& os, std::istream& is)
+    {
+        os << _outputstream.str();
+        return !!os;
+    }
+
 
     /// evaluates distance between two configurations of the robot
     class CBirrtDistanceMetric
@@ -182,7 +205,6 @@ public:
     };
 
     
-    CBirrtPlanner(EnvironmentBasePtr penv);
     ~CBirrtPlanner();
 
 
@@ -292,6 +314,7 @@ private:
     double max_planning_time;
     double max_firstik_time;
     CBirrtDistanceMetric* pdistmetric;
+    std::stringstream _outputstream;
 
     //TSR
     std::vector<std::vector<int > > vvManipToGoalSamplingTSRChainind;

@@ -70,21 +70,6 @@ void  PrintMatrix(dReal* pMatrix, int numrows, int numcols, const char * stateme
 
 
 
-CBirrtPlanner::CBirrtPlanner(EnvironmentBasePtr penv) : PlannerBase(penv)
-{
-    __description = ":Interface Author: Dmitry Berenson\nRRT-based algorithm for planning with end-effector pose constraints described by Task Space Region Chains.\n\n`C++ Documentation <http://automation.berkeley.edu/~berenson/docs/cbirrt/index.html>`_";
-    _pActiveNode = NULL;
-    _pConnectNode = NULL;
-
-    //these shouldn't be de-allocated so that multiple calls of this planner are faster
-    _pForwardTree = new NodeTree(false);
-    _pBackwardTree = new NodeTree(true);
-
-    sIgnoredBodies.clear();
-    sIgnoredLinks.clear();
-}
-
-
 
 CBirrtPlanner::~CBirrtPlanner()
 {
@@ -133,6 +118,7 @@ bool CBirrtPlanner::InitPlan(RobotBasePtr  pbase, PlannerParametersConstPtr ppar
     else
     {
         RAVELOG_DEBUG("CBirrt::InitPlan - Error: No parameters passed in to initialization");
+        _outputstream << "Error: No parameters passed in to initialization\n";
         return false;
     }
     
@@ -206,6 +192,7 @@ bool CBirrtPlanner::InitPlan(RobotBasePtr  pbase, PlannerParametersConstPtr ppar
         if(!_parameters->vTSRChains[i].RobotizeTSRChain(GetEnv(),probottemp))
         {
             RAVELOG_FATAL("Unable to robotize TSR for TSR Chain %d, cannot initialize planner.\n",i);
+            _outputstream << "Unable to robotize TSR for TSR Chain " << i << ", cannot initialize planner\n";
             return false;
         }
 
@@ -283,11 +270,13 @@ bool CBirrtPlanner::InitPlan(RobotBasePtr  pbase, PlannerParametersConstPtr ppar
     if(P_SAMPLE_IK == 0 && bDoingSampling)
     {
         RAVELOG_INFO("ERROR: there are chains defined for sampling but psample is 0.\n");
+        _outputstream << "ERROR: there are chains defined for sampling but psample is 0\n";
         return false;
     }
     else if(P_SAMPLE_IK > 0 && !bDoingSampling)
     {
         RAVELOG_INFO("ERROR: psample is set to >0 but there are no chains defined for sampling.\n");
+        _outputstream << "ERROR: psample is set to >0 but there are no chains defined for sampling\n";
         return false;
     }
 
@@ -344,7 +333,8 @@ bool CBirrtPlanner::InitPlan(RobotBasePtr  pbase, PlannerParametersConstPtr ppar
                 }
                 else
                 {
-                    RAVELOG_INFO("CBirrtPlanner::InitPlan - Error: Starts are improperly specified:\n");
+                    RAVELOG_INFO("CBirrtPlanner::InitPlan - Error: Starts are improperly specified.\n");
+                    _outputstream << "Error: Starts are improperly specified\n";
                     return false;
                 }
 
@@ -357,8 +347,9 @@ bool CBirrtPlanner::InitPlan(RobotBasePtr  pbase, PlannerParametersConstPtr ppar
             tempjointvals = _pInitConfig;
             ClearTSRChainValues();
             tempconfig = _pInitConfig;
-	    bool bProjected = false; 
+            bool bProjected = false;
             //WARNING: DISTANCE CHECKING FOR STARTCONFIG PROJECTION IS CURRENTLY DISABLED
+            //This is because there is always some numerical error so can't meet lower-dimensional constraints exactly
             if(!_pForwardTree->_pMakeNext->ConstrainedNewConfig(_pInitConfig,tempjointvals,vTSRChainValues_temp,false))
             {
                 s << "Start " << num_starts << ": ";
@@ -367,6 +358,15 @@ bool CBirrtPlanner::InitPlan(RobotBasePtr  pbase, PlannerParametersConstPtr ppar
                     s<< _pInitConfig[j] << " ";
                 s << endl;        
                 RAVELOG_INFO(s.str().c_str());
+                _outputstream << "Error: Start configuration "<< num_starts << " does not meet constraints\n";
+
+                SetDOF(_pInitConfig);
+                if(!_pForwardTree->_pMakeNext->CheckSupport())
+                {
+                    RAVELOG_INFO("CBirrtPlanner::InitPlan - Error: Start configuration %d is not in balance.\n",num_starts);
+                    _outputstream << "Error: Start configuration "<< num_starts << " is not in balance\n";
+                }
+
                 return false;
             }
 
@@ -378,8 +378,10 @@ bool CBirrtPlanner::InitPlan(RobotBasePtr  pbase, PlannerParametersConstPtr ppar
                     s<< _pInitConfig[j] << " ";
                 s << endl;        
                 RAVELOG_INFO(s.str().c_str());
+                _outputstream << "Error: Start configuration in collision\n";
                 return false;
             }
+
 
             // set up the start states
             _pActiveNode = new RrtNode(GetNumDOF(),false,num_starts+projectednode_id);
@@ -392,13 +394,14 @@ bool CBirrtPlanner::InitPlan(RobotBasePtr  pbase, PlannerParametersConstPtr ppar
 		{
 		   if(_pInitConfig[i] != tempconfig[i])
 		   {
-   		        RAVELOG_INFO("CBirrtPlanner::InitPlan - Start configuration %d was projected slightly to meet constraint:\n",num_starts);
+                RAVELOG_INFO("CBirrtPlanner::InitPlan - WARNING: Start configuration %d was projected to meet constraint:\n",num_starts);
                         for(int j = 0 ; j < GetNumDOF(); j++)
                             s<< _pInitConfig[j] << " ";
                         s << endl;        
                         RAVELOG_INFO(s.str().c_str());
-			bProjected = true;
-			projectednode_id++;
+                        _outputstream << "WARNING: Start configuration "<< num_starts << " was projected to meet constraint:\n"<< s.str();
+                bProjected = true;
+                projectednode_id++;
 			    _pActiveNode = new RrtNode(GetNumDOF(),false,num_starts+projectednode_id);
 			    _pActiveNode->SetConfig(&_pInitConfig[0]);
 			    _pActiveNode->SetTSRChainValues(vTSRChainValues_temp); 
@@ -441,7 +444,8 @@ bool CBirrtPlanner::InitPlan(RobotBasePtr  pbase, PlannerParametersConstPtr ppar
                     _pGoalConfig[i] = _parameters->vgoalconfig[goal_index];
                 else
                 {
-                    RAVELOG_INFO("CBirrtPlanner::InitPlan - Error: goals are improperly specified:\n");
+                    RAVELOG_INFO("CBirrtPlanner::InitPlan - Error: goals are improperly specified.\n");
+                    _outputstream << "Error: goals are improperly specified\n";
                     return false;
                 }
                 goal_index++;
@@ -456,24 +460,33 @@ bool CBirrtPlanner::InitPlan(RobotBasePtr  pbase, PlannerParametersConstPtr ppar
             //don't care about distance check for goal config
             if(!_pBackwardTree->_pMakeNext->ConstrainedNewConfig(_pGoalConfig,tempjointvals,vTSRChainValues_temp,false))
             {
-                s << "Goal " << num_starts << ": ";
+                s << "Goal " << num_goals << ": ";
                 RAVELOG_INFO("CBirrtPlanner::InitPlan - Error: Goal configuration does not meet constraints:\n");
                 for(int j = 0 ; j < GetNumDOF(); j++)
                     s<< _pGoalConfig[j] << " ";
                 s << endl;        
                 RAVELOG_INFO(s.str().c_str());
+                _outputstream << "Error: Goal configuration does not meet constraints:\n" << s.str();
+
+                SetDOF(_pGoalConfig);
+                if(!_pForwardTree->_pMakeNext->CheckSupport())
+                {
+                    RAVELOG_INFO("CBirrtPlanner::InitPlan - Error: Goal configuration %d is not in balance.\n",num_goals);
+                    _outputstream << "Error: Goal configuration "<< num_goals << " is not in balance\n";
+                }
+
                 return false;
             }
 
             if(_CheckCollision(_pGoalConfig))
             {
                 s << "Skipping Goal " << num_goals << ": ";
-                RAVELOG_INFO(" : Since Goal configuration in collision:\n");
                 for(int j = 0 ; j < GetNumDOF(); j++)
                     s<< _pGoalConfig[j] << " ";
                 s << endl;        
                 RAVELOG_INFO(s.str().c_str());
-
+                RAVELOG_INFO(" because it is in collision:\n");
+                _outputstream << s.str() << " because it is in collision:\n";
                 if(goal_index == (int)_parameters->vgoalconfig.size())
                   break;
                 else
@@ -500,7 +513,8 @@ bool CBirrtPlanner::InitPlan(RobotBasePtr  pbase, PlannerParametersConstPtr ppar
           RAVELOG_DEBUG("Goal State Node(s) Created\n");
         else
         {
-          RAVELOG_DEBUG("Could not initialize Goal State\n");
+          RAVELOG_DEBUG("Could not initialize Goal Configuration\n");
+          _outputstream << "Could not initialize Goal Configuration\n";
           return false;
         }
     }
@@ -526,6 +540,7 @@ OpenRAVE::PlannerStatus CBirrtPlanner::PlanPath(TrajectoryBasePtr ptraj)
     if(!bInit)
     {
         RAVELOG_INFO("CBirrtPlanner::PlanPath - Error, planner not initialized\n");
+        _outputstream << "Error, planner not initialized\n";
         return CleanUpReturn(false);
     }
     RAVELOG_DEBUG("Starting PlanPath\n");
@@ -559,6 +574,7 @@ OpenRAVE::PlannerStatus CBirrtPlanner::PlanPath(TrajectoryBasePtr ptraj)
         if(*(_parameters->pplannerstate) == PS_PlanFailed)
         {
             RAVELOG_INFO("Planning terminated from external function.\n");
+            _outputstream << "Planning terminated from external function\n";
             return CleanUpReturn(false);
         }
 
@@ -582,6 +598,7 @@ OpenRAVE::PlannerStatus CBirrtPlanner::PlanPath(TrajectoryBasePtr ptraj)
                 if(timeGetThreadTime() - starttime > max_firstik_time)
                 {
                     RAVELOG_FATAL("Unable to find a start IK solution in %f seconds, planner failed\n",(dReal)max_firstik_time);
+                    _outputstream << "Unable to find a start IK solution in " << (dReal)max_firstik_time << " seconds, planner failed\n";
                     return CleanUpReturn(false);
                 }
             }
@@ -599,6 +616,7 @@ OpenRAVE::PlannerStatus CBirrtPlanner::PlanPath(TrajectoryBasePtr ptraj)
                 if(timeGetThreadTime() - starttime > max_firstik_time)
                 {
                     RAVELOG_FATAL("Unable to find a goal IK solution in %f seconds, planner failed\n",(dReal)max_firstik_time);
+                    _outputstream << "Unable to find a start IK solution in " << (dReal)max_firstik_time << " seconds, planner failed\n";
                     return CleanUpReturn(false);
                 }
             }
@@ -697,6 +715,7 @@ OpenRAVE::PlannerStatus CBirrtPlanner::PlanPath(TrajectoryBasePtr ptraj)
             RAVELOG_FATAL("NearestNeighbor \t %d \t %f \t %f\n", nncalls, nntime, nntime/nncalls);
 #endif
             RAVELOG_FATAL("Planner Failed: %fs time limit reached\n",max_planning_time);
+            _outputstream << "Planner Failed: " << max_planning_time << "s time limit reached\n";
             return CleanUpReturn(false);
         }
 
@@ -733,6 +752,7 @@ OpenRAVE::PlannerStatus CBirrtPlanner::PlanPath(TrajectoryBasePtr ptraj)
     _OptimizePath(bTerminated, starttime);
     if(bTerminated)
     {
+        _outputstream << "Smoothing terminated from external function\n";
         return CleanUpReturn(false);
     }
 
