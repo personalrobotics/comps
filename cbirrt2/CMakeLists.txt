@@ -16,6 +16,7 @@ find_package(Boost REQUIRED regex system)
  
 # Set up the ROS Catkin package settings.
 catkin_package()
+catkin_python_setup()
 
 # Some system dependencies don't have 'find_package' macros.  For these
 # packages, CMake includes a helper function which can resolve the libraries
