@@ -80,6 +80,11 @@ public:
 protected:
     bool bProcessing;
 
+    virtual bool serialize(std::ostream& O, int options) const
+    {
+        return serialize(O);
+    }
+
     virtual bool serialize(std::ostream& O) const
     {
         if( !PlannerParameters::serialize(O) )
