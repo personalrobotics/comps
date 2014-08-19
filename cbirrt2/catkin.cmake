@@ -7,13 +7,12 @@ project(cbirrt2)
 # 
 # This macro creates:
 # catkin_INCLUDE_DIRS, catkin_LIBRARIES, catkin_LIBRARY_DIRS
-find_package(catkin REQUIRED)
+find_package(catkin REQUIRED COMPONENTS openrave_catkin)
  
 # For system dependencies, use CMake's 'find_package' macros.
 # These macros typically create (for a package named 'foo'):
 # foo_INCLUDE_DIRS, foo_LIBRARIES, foo_LIBRARY_DIRS
 find_package(Boost REQUIRED regex system)
-find_package(OpenRAVE REQUIRED)
  
 # Set up the ROS Catkin package settings.
 catkin_package()
@@ -26,26 +25,19 @@ catkin_python_setup()
 # Add ALL the includes we need to build: stuff from catkin AND system dependencies.
 include_directories(
     ${catkin_INCLUDE_DIRS}
-    ${OpenRAVE_INCLUDE_DIRS}
     ${Boost_INCLUDE_DIRS}
 )
 
 # CMake has add_executable and add_library functions to define build 'targets'.
-add_library(${PROJECT_NAME}_plugin SHARED
+openrave_plugin("${PROJECT_NAME}_plugin"
     cbirrtmain.cpp
     TaskSpaceRegion.cpp
     cbirrt.cpp
     cbirrtproblem.cpp
 )
-target_link_libraries(${PROJECT_NAME}_plugin
-    ${OpenRAVE_LIBRARIES} ${Boost_LIBRARIES} qhull newmat)
-set_target_properties(${PROJECT_NAME}_plugin PROPERTIES
-    PREFIX ""
-    LIBRARY_OUTPUT_DIRECTORY "${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_LIB_DESTINATION}/openrave-${OpenRAVE_LIBRARY_SUFFIX}"
+target_link_libraries("${PROJECT_NAME}_plugin"
+    qhull
+    newmat
+    ${Boost_LIBRARIES}
+    ${catkin_LIBRARIES}
 )
- 
-# At the end of the build, tell catkin to INSTALL your 'target'.
-install(TARGETS ${PROJECT_NAME}_plugin
-    LIBRARY DESTINATION "${CATKIN_PACKAGE_LIB_DESTINATION}/openrave-${OpenRAVE_LIBRARY_SUFFIX}"
-)
-
