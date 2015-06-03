@@ -191,7 +191,7 @@ bool CBirrtPlanner::InitPlan(RobotBasePtr  pbase, PlannerParametersConstPtr ppar
     {
         if(!_parameters->vTSRChains[i].RobotizeTSRChain(GetEnv(),probottemp))
         {
-            RAVELOG_FATAL("Unable to robotize TSR for TSR Chain %d, cannot initialize planner.\n",i);
+            RAVELOG_ERROR("Unable to robotize TSR for TSR Chain %d, cannot initialize planner.\n",i);
             _outputstream << "Unable to robotize TSR for TSR Chain " << i << ", cannot initialize planner\n";
             return false;
         }
@@ -597,7 +597,7 @@ OpenRAVE::PlannerStatus CBirrtPlanner::PlanPath(TrajectoryBasePtr ptraj)
                 }
                 if(timeGetThreadTime() - starttime > max_firstik_time)
                 {
-                    RAVELOG_FATAL("Unable to find a start IK solution in %f seconds, planner failed\n",(dReal)max_firstik_time);
+                    RAVELOG_ERROR("Unable to find a start IK solution in %f seconds, planner failed\n",(dReal)max_firstik_time);
                     _outputstream << "Unable to find a start IK solution in " << (dReal)max_firstik_time << " seconds, planner failed\n";
                     return CleanUpReturn(false);
                 }
@@ -615,7 +615,7 @@ OpenRAVE::PlannerStatus CBirrtPlanner::PlanPath(TrajectoryBasePtr ptraj)
                     break;
                 if(timeGetThreadTime() - starttime > max_firstik_time)
                 {
-                    RAVELOG_FATAL("Unable to find a goal IK solution in %f seconds, planner failed\n",(dReal)max_firstik_time);
+                    RAVELOG_ERROR("Unable to find a goal IK solution in %f seconds, planner failed\n",(dReal)max_firstik_time);
                     _outputstream << "Unable to find a start IK solution in " << (dReal)max_firstik_time << " seconds, planner failed\n";
                     return CleanUpReturn(false);
                 }
@@ -708,13 +708,13 @@ OpenRAVE::PlannerStatus CBirrtPlanner::PlanPath(TrajectoryBasePtr ptraj)
         if(timeGetThreadTime()-starttime > max_planning_time)
         {
 #ifdef RECORD_TIMES
-            RAVELOG_FATAL("Component       \t# calls\t total time (s)\t avg. time (s)\n");
-            RAVELOG_FATAL("-------------------------------------------------------------\n");
-            RAVELOG_FATAL("Projection      \t %d \t %f \t %f\n", projectioncalls, projectiontime, projectiontime/projectioncalls);
-            RAVELOG_FATAL("CollisionCheck  \t %d \t %f \t %f\n", collisioncheckcalls, collisionchecktime, collisionchecktime/collisioncheckcalls);
-            RAVELOG_FATAL("NearestNeighbor \t %d \t %f \t %f\n", nncalls, nntime, nntime/nncalls);
+            RAVELOG_INFO("Component       \t# calls\t total time (s)\t avg. time (s)\n");
+            RAVELOG_INFO("-------------------------------------------------------------\n");
+            RAVELOG_INFO("Projection      \t %d \t %f \t %f\n", projectioncalls, projectiontime, projectiontime/projectioncalls);
+            RAVELOG_INFO("CollisionCheck  \t %d \t %f \t %f\n", collisioncheckcalls, collisionchecktime, collisionchecktime/collisioncheckcalls);
+            RAVELOG_INFO("NearestNeighbor \t %d \t %f \t %f\n", nncalls, nntime, nntime/nncalls);
 #endif
-            RAVELOG_FATAL("Planner Failed: %fs time limit reached\n",max_planning_time);
+            RAVELOG_ERROR("Planner Failed: %fs time limit reached\n",max_planning_time);
             _outputstream << "Planner Failed: " << max_planning_time << "s time limit reached\n";
             return CleanUpReturn(false);
         }
@@ -735,16 +735,16 @@ OpenRAVE::PlannerStatus CBirrtPlanner::PlanPath(TrajectoryBasePtr ptraj)
     }
 
 #ifdef RECORD_TIMES
-    RAVELOG_FATAL("Component       \t# calls\t total time (s)\t avg. time (s)\n");
-    RAVELOG_FATAL("-------------------------------------------------------------\n");
-    RAVELOG_FATAL("Projection      \t %d \t %f \t %f\n", projectioncalls, projectiontime, projectiontime/projectioncalls);
-    RAVELOG_FATAL("CollisionCheck  \t %d \t %f \t %f\n", collisioncheckcalls, collisionchecktime, collisionchecktime/collisioncheckcalls);
-    RAVELOG_FATAL("NearestNeighbor \t %d \t %f \t %f\n", nncalls, nntime, nntime/nncalls);
+    RAVELOG_INFO("Component       \t# calls\t total time (s)\t avg. time (s)\n");
+    RAVELOG_INFO("-------------------------------------------------------------\n");
+    RAVELOG_INFO("Projection      \t %d \t %f \t %f\n", projectioncalls, projectiontime, projectiontime/projectioncalls);
+    RAVELOG_INFO("CollisionCheck  \t %d \t %f \t %f\n", collisioncheckcalls, collisionchecktime, collisionchecktime/collisioncheckcalls);
+    RAVELOG_INFO("NearestNeighbor \t %d \t %f \t %f\n", nncalls, nntime, nntime/nncalls);
 
     //this is a more compact way to dispay the information if you're doing lots of trials
-    //RAVELOG_FATAL("%f \t %f \t %f \t %f \t %f \t %f\n",projectiontime,collisionchecktime,nntime,projectiontime/projectioncalls,collisionchecktime/collisioncheckcalls,nntime/nncalls);
+    //RAVELOG_INFO("%f \t %f \t %f \t %f \t %f \t %f\n",projectiontime,collisionchecktime,nntime,projectiontime/projectioncalls,collisionchecktime/collisioncheckcalls,nntime/nncalls);
 #endif
-    RAVELOG_FATAL("Planning time: %fs\n",timeGetThreadTime()-starttime);
+    RAVELOG_INFO("Planning time: %fs\n",timeGetThreadTime()-starttime);
     
     //construct optimized trajectory
     _JoinPathHalves();
@@ -1126,7 +1126,7 @@ bool CBirrtPlanner::SetVecPathFromTraj(TrajectoryBasePtr ptraj_in)
     vecpath.clear();
     if(GetNumDOF() != activedofinds.size())
     {
-        RAVELOG_FATAL("CBiRRT::SetVecPathFromTraj ERROR: GetNumDOF (%d) != activedofinds.size() (%d).\n",GetNumDOF(),activedofinds.size());
+        RAVELOG_ERROR("CBiRRT::SetVecPathFromTraj ERROR: GetNumDOF (%d) != activedofinds.size() (%d).\n",GetNumDOF(),activedofinds.size());
         return false;
     }
 
