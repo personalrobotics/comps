@@ -9,7 +9,7 @@
 #   - rosbuild.cmake : the CMakeLists used for ROS rosbuild builds
 #
 cmake_minimum_required(VERSION 2.8.3)
-project(prpy)
+project(cbirrt2)
  
 if (DEFINED CATKIN_TOPLEVEL OR (NOT ("$ENV{ROS_DISTRO}" STREQUAL "fuerte")))
     include(${PROJECT_SOURCE_DIR}/catkin.cmake)
