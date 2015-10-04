@@ -90,12 +90,17 @@ protected:
         if( !PlannerParameters::serialize(O) )
             return false;
 
+        std::streamsize old_precision = O.precision();
+        O.precision(17);
 
         for(int i =0; i < vTSRChains.size();i++)
         {
             O << "<tsrchain>";
             if(!vTSRChains[i].serialize(O))
+            {
+                O.precision(old_precision);
                 return false;
+            }
             O << "</tsrchain>"<<endl;            
         }
 
@@ -147,6 +152,7 @@ protected:
         uli = (unsigned long int)pplannerstate;
         O << "<pplannerstate>" << uli << "</pplannerstate>" << endl;
 
+        O.precision(old_precision);
         return !!O;
     }
 

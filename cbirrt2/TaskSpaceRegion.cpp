@@ -346,6 +346,9 @@ bool TaskSpaceRegion::serialize(std::ostream& O) const
         O << prelativetolink->GetName() << " ";
     }
     
+    std::streamsize old_precision = O.precision();
+    O.precision(17);
+    
     O << T0_w.rot.x << " " << T0_w.rot.y << " " << T0_w.rot.z << " " << T0_w.rot.w << " ";
     O << T0_w.trans.x << " " << T0_w.trans.y << " " << T0_w.trans.z << " ";
 
@@ -369,6 +372,8 @@ bool TaskSpaceRegion::serialize(std::ostream& O) const
 
     O << Bw[5][0] << " ";
     O << Bw[5][1] << " ";
+    
+    O.precision(old_precision);
     return true;
 }
 
