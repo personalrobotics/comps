@@ -571,13 +571,12 @@ OpenRAVE::PlannerStatus CBirrtPlanner::PlanPath(TrajectoryBasePtr ptraj)
     while(bContinuePlan)
     {
         //stop planning if you see PS_PlanFailed
-        if(*(_parameters->pplannerstate) == PS_PlanFailed)
+        if(_parameters->pplannerstate && *(_parameters->pplannerstate) == PS_PlanFailed)
         {
             RAVELOG_INFO("Planning terminated from external function.\n");
             _outputstream << "Planning terminated from external function\n";
             return CleanUpReturn(false);
         }
-
         if(_pForwardTree->GetSize() == 0)
         {
             RAVELOG_DEBUG("Forward Tree is empty\n");
@@ -1192,7 +1191,7 @@ bool CBirrtPlanner::_OptimizePath(bool &bTerminated, double starttime)
         }
 
         //terminate smoothing if PS_PlanFailed was set
-        if(*(_parameters->pplannerstate) == PS_PlanFailed)
+        if(_parameters->pplannerstate && *(_parameters->pplannerstate) == PS_PlanFailed)
         {
             RAVELOG_INFO("Smoothing terminated from external function.\n");
             bTerminated = true;

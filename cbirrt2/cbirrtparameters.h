@@ -36,7 +36,11 @@
 class CBirrtParameters : public PlannerBase::PlannerParameters
 {
 public:
-    CBirrtParameters() : bgrabbed(false), Psample(0), bsmoothpath(true), smoothingitrs(-1), bsamplingstart(false), bsamplinggoal(false), timelimit(-1.0), bProcessing(false), bikfastsinglesolution(true)
+    CBirrtParameters() :
+        bgrabbed(false), Psample(0), bsmoothpath(true),
+        smoothingitrs(-1), bsamplingstart(false), bsamplinggoal(false),
+        timelimit(-1.0), bProcessing(false),
+        bikfastsinglesolution(true), pplannerstate(0)
     {
         _vXMLParameters.push_back("tsrchain");
         _vXMLParameters.push_back("grabbed");
@@ -90,12 +94,17 @@ protected:
         if( !PlannerParameters::serialize(O) )
             return false;
 
+        std::streamsize old_precision = O.precision();
+        O.precision(2 + std::numeric_limits<OpenRAVE::dReal>::digits10);
 
         for(int i =0; i < vTSRChains.size();i++)
         {
             O << "<tsrchain>";
             if(!vTSRChains[i].serialize(O))
+            {
+                O.precision(old_precision);
                 return false;
+            }
             O << "</tsrchain>"<<endl;            
         }
 
@@ -147,6 +156,7 @@ protected:
         uli = (unsigned long int)pplannerstate;
         O << "<pplannerstate>" << uli << "</pplannerstate>" << endl;
 
+        O.precision(old_precision);
         return !!O;
     }
 
