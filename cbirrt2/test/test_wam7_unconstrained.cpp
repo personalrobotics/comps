@@ -9,7 +9,7 @@
 
 #include <gtest/gtest.h>
 
-TEST(Wam7TestCase, SimpleTest)
+TEST(Wam7UnconstrainedTestCase, SimpleTest)
 {
    // initialize with wam7
    OpenRAVE::RaveInitialize(true, OpenRAVE::Level_Info);

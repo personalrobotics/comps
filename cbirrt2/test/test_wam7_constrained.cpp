@@ -27,7 +27,7 @@ ROBBER(TaskSpaceRegionChain, bool, bConstrainToChain)
 ROBBER(TaskSpaceRegionChain, std::string, mimicbodyname)
 } // anonymous namespace
 
-TEST(Wam7ConTestCase, SimpleTest)
+TEST(Wam7ConstrainedTestCase, SimpleTest)
 {
    // initialize with wam7
    OpenRAVE::RaveInitialize(true, OpenRAVE::Level_Info);
