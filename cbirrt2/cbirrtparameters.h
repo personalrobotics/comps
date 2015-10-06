@@ -36,7 +36,11 @@
 class CBirrtParameters : public PlannerBase::PlannerParameters
 {
 public:
-    CBirrtParameters() : bgrabbed(false), Psample(0), bsmoothpath(true), smoothingitrs(-1), bsamplingstart(false), bsamplinggoal(false), timelimit(-1.0), bProcessing(false), bikfastsinglesolution(true), pplannerstate(0)
+    CBirrtParameters() :
+        bgrabbed(false), Psample(0), bsmoothpath(true),
+        smoothingitrs(-1), bsamplingstart(false), bsamplinggoal(false),
+        timelimit(-1.0), bProcessing(false),
+        bikfastsinglesolution(true), pplannerstate(0)
     {
         _vXMLParameters.push_back("tsrchain");
         _vXMLParameters.push_back("grabbed");
