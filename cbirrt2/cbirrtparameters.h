@@ -95,7 +95,7 @@ protected:
             return false;
 
         std::streamsize old_precision = O.precision();
-        O.precision(17);
+        O.precision(2 + std::numeric_limits<OpenRAVE::dReal>::digits10);
 
         for(int i =0; i < vTSRChains.size();i++)
         {

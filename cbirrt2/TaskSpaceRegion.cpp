@@ -347,7 +347,7 @@ bool TaskSpaceRegion::serialize(std::ostream& O) const
     }
     
     std::streamsize old_precision = O.precision();
-    O.precision(17);
+    O.precision(2 + std::numeric_limits<OpenRAVE::dReal>::digits10);
     
     O << T0_w.rot.x << " " << T0_w.rot.y << " " << T0_w.rot.z << " " << T0_w.rot.w << " ";
     O << T0_w.trans.x << " " << T0_w.trans.y << " " << T0_w.trans.z << " ";
