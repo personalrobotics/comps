@@ -1,0 +1,22 @@
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Changelog for package cbirrt2
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Forthcoming
+-----------
+* Added basic unit tests.
+* Removed superfluous FATAL log messages.
+* Contributors: Chris Dellin, Michael Koval
+
+1.0.0 (2014-10-10)
+------------------
+* Switched to using openrave_catkin.
+* Support for building in fuerte
+* Patched a SEGFAULT in OpenRAVE 0.9.
+* Switched to finding OpenRAVE with find_package
+* Contributors: Evan Shapiro, Michael Koval
+
+0.0.1 (2014-05-22)
+------------------
+* Import from SVN
+* Contributors: Dmitry Berenson
