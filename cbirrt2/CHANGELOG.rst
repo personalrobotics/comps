@@ -2,8 +2,8 @@
 Changelog for package cbirrt2
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.1.0 (2015-10-12)
+------------------
 * Added basic unit tests.
 * Removed superfluous FATAL log messages.
 * Contributors: Chris Dellin, Michael Koval
