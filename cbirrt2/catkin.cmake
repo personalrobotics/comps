@@ -27,6 +27,7 @@ catkin_python_setup()
 include_directories(
     ${catkin_INCLUDE_DIRS}
     ${Boost_INCLUDE_DIRS}
+    ${OpenRAVE_INCLUDE_DIRS}
 )
 
 # CMake has add_executable and add_library functions to define build 'targets'.
