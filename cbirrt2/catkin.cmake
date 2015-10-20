@@ -45,10 +45,22 @@ target_link_libraries("${PROJECT_NAME}_plugin"
 )
 
 catkin_add_gtest(test_wam7_unconstrained test/test_wam7_unconstrained.cpp)
-target_link_libraries(test_wam7_unconstrained ${OpenRAVE_LIBRARIES} ${OpenRAVE_CORE_LIBRARIES})
+target_link_libraries(test_wam7_unconstrained
+  ${Boost_LIBRARIES}
+  ${OpenRAVE_LIBRARIES}
+  ${OpenRAVE_CORE_LIBRARIES}
+)
 
 catkin_add_gtest(test_wam7_constrained test/test_wam7_constrained.cpp TaskSpaceRegion.cpp)
-target_link_libraries(test_wam7_constrained ${OpenRAVE_LIBRARIES} ${OpenRAVE_CORE_LIBRARIES})
+target_link_libraries(test_wam7_constrained
+  ${Boost_LIBRARIES}
+  ${OpenRAVE_LIBRARIES}
+  ${OpenRAVE_CORE_LIBRARIES}
+)
 
 catkin_add_gtest(test_params test/test_params.cpp TaskSpaceRegion.cpp)
-target_link_libraries(test_params ${OpenRAVE_LIBRARIES} ${OpenRAVE_CORE_LIBRARIES})
+target_link_libraries(test_params
+  ${Boost_LIBRARIES}
+  ${OpenRAVE_LIBRARIES}
+  ${OpenRAVE_CORE_LIBRARIES}
+)
