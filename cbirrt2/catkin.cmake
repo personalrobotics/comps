@@ -26,6 +26,7 @@ catkin_python_setup()
 # Add ALL the includes we need to build: stuff from catkin AND system dependencies.
 include_directories(
     ${catkin_INCLUDE_DIRS}
+    ${OpenRAVE_INCLUDE_DIRS}
     ${Boost_INCLUDE_DIRS}
 )
 
