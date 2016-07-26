@@ -306,7 +306,7 @@ bool CBirrtPlanner::InitPlan(RobotBasePtr  pbase, PlannerParametersConstPtr ppar
 
 
     bSmoothPath = _parameters->bsmoothpath;
-
+    bdofresl2norm = _parameters->bdofresl2norm;
 
     _pIkSolver = RaveCreateIkSolver(GetEnv(),"GeneralIK");
     _pIkSolver->Init(_pRobot->GetActiveManipulator());
@@ -1044,10 +1044,20 @@ bool CBirrtPlanner::_CheckCollision(std::vector<dReal>& pQ0, std::vector<dReal>&
 
   // compute  the discretization
   int i, numSteps = 1;
-  for (i = 0; i < GetNumDOF(); i++) {
-    int steps = (int)(fabs(pQ1[i] - pQ0[i]) * _jointResolutionInv[i]);
-    if (steps > numSteps)
-      numSteps = steps;
+  if (!bdofresl2norm) {
+    // L-infinity norm
+    for (i = 0; i < GetNumDOF(); i++) {
+      int steps = (int)(fabs(pQ1[i] - pQ0[i]) * _jointResolutionInv[i]);
+      if (steps > numSteps)
+        numSteps = steps;
+    }
+  } else {
+    // L-2 norm
+    dReal steps_dist2 = 0.0;
+    for (i = 0; i < GetNumDOF(); i++) {
+      steps_dist2 += pow((pQ1[i] - pQ0[i]) * _jointResolutionInv[i], 2.0);
+    }
+    numSteps = (int)sqrt(steps_dist2);
   }
   //cerr << "CheckCollision: number of steps: " << numSteps << endl;
 

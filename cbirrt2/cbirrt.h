@@ -92,6 +92,7 @@ public:
         __description = ":Interface Author: Dmitry Berenson\nRRT-based algorithm for planning with end-effector pose constraints described by Task Space Region Chains.\n\n`C++ Documentation <http://automation.berkeley.edu/~berenson/docs/cbirrt/index.html>`_";
         _pActiveNode = NULL;
         _pConnectNode = NULL;
+        bdofresl2norm = false;
 
         //these shouldn't be de-allocated so that multiple calls of this planner are faster
         _pForwardTree = new NodeTree(false);
@@ -301,6 +302,7 @@ private:
     int projectioncalls;
 
     bool bSmoothPath;
+    bool bdofresl2norm;
 
     dReal P_SAMPLE_IK;
 

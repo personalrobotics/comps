@@ -812,6 +812,10 @@ int CBirrtProblem::RunCBirrt(ostream& sout, istream& sinput)
         {
                sinput >> params->bikfastsinglesolution;
         }
+        else if( stricmp(cmd.c_str(), "bdofresl2norm") == 0)
+        {
+               sinput >> params->bdofresl2norm;
+        }
         else if( stricmp(cmd.c_str(), "planinnewthread") == 0)
         {
                sinput >> bPlanInNewThread;
