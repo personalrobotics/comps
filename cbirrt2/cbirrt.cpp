@@ -1047,7 +1047,7 @@ bool CBirrtPlanner::_CheckCollision(std::vector<dReal>& pQ0, std::vector<dReal>&
   if (!bdofresl2norm) {
     // L-infinity norm
     for (i = 0; i < GetNumDOF(); i++) {
-      int steps = (int)(fabs(pQ1[i] - pQ0[i]) * _jointResolutionInv[i]);
+      int steps = (int) ceil(fabs(pQ1[i] - pQ0[i]) * _jointResolutionInv[i]);
       if (steps > numSteps)
         numSteps = steps;
     }
@@ -1057,7 +1057,9 @@ bool CBirrtPlanner::_CheckCollision(std::vector<dReal>& pQ0, std::vector<dReal>&
     for (i = 0; i < GetNumDOF(); i++) {
       steps_dist2 += pow((pQ1[i] - pQ0[i]) * _jointResolutionInv[i], 2.0);
     }
-    numSteps = (int)sqrt(steps_dist2);
+    numSteps = (int) ceil(sqrt(steps_dist2));
+    if (!(1 <= numSteps))
+      numSteps = 1;
   }
   //cerr << "CheckCollision: number of steps: " << numSteps << endl;
 
