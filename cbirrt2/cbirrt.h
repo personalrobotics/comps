@@ -133,7 +133,7 @@ public:
     class MakeNext
     {
     public:
-        MakeNext(bool bFromGoal, int numdof, RobotBasePtr  robot, CBirrtPlanner * planner);
+        MakeNext(bool bFromGoal, int numdof, RobotBasePtr  robot, CBirrtPlanner * planner, dReal steplength);
 
         ~MakeNext(){}
 
@@ -154,6 +154,7 @@ public:
         CBirrtPlanner * _planner;
         std::vector<dReal> _lowerLimit;
         std::vector<dReal> _upperLimit;
+        dReal _steplength;
         //variables for tree extension
         dReal* startConfig;
         bool bExtendConnect;

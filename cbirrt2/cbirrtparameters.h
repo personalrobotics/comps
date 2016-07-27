@@ -41,7 +41,7 @@ public:
         smoothingitrs(-1), bsamplingstart(false), bsamplinggoal(false),
         timelimit(-1.0), bProcessing(false),
         bikfastsinglesolution(true), pplannerstate(0),
-        bdofresl2norm(false)
+        steplength(0.05), bdofresl2norm(false)
     {
         _vXMLParameters.push_back("tsrchain");
         _vXMLParameters.push_back("grabbed");
@@ -57,6 +57,7 @@ public:
         _vXMLParameters.push_back("ikguess");
         _vXMLParameters.push_back("bikfastsinglesolution");
         _vXMLParameters.push_back("pplannerstate");
+        _vXMLParameters.push_back("steplength");
         _vXMLParameters.push_back("bdofresl2norm");
 
     }
@@ -83,6 +84,7 @@ public:
 
     enum PlannerState * pplannerstate;
 
+    dReal steplength;
     bool bdofresl2norm; ///< use the L2 norm (instead of the default L-infinity norm) for dof resolutions
 
 protected:
@@ -160,6 +162,7 @@ protected:
         uli = (unsigned long int)pplannerstate;
         O << "<pplannerstate>" << uli << "</pplannerstate>" << endl;
 
+        O << "<steplength>" << steplength << "</steplength>" << endl;
         O << "<bdofresl2norm>" << bdofresl2norm << "</bdofresl2norm>" << endl;
 
         O.precision(old_precision);
@@ -192,6 +195,7 @@ protected:
                        name == "ikguess" ||
                        name == "bikfastsinglesolution" ||
                        name == "pplannerstate" ||
+                       name == "steplength" ||
                        name == "bdofresl2norm");
 
         return bProcessing ? PE_Support : PE_Pass;
@@ -297,6 +301,10 @@ protected:
                 unsigned long int uli;
                 _ss >> uli;
                 pplannerstate = (enum PlannerState *)uli;
+            }
+            else if( stricmp(name.c_str(), "steplength") == 0 )
+            {
+                _ss >> steplength;
             }
             else if( stricmp(name.c_str(), "bdofresl2norm") == 0 )
             {
