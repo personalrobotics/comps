@@ -31,7 +31,8 @@
  */
 #include "stdafx.h"
 
-const dReal STEP_LENGTH        = 0.05; /// step length in radians
+// STEP_LENGTH was moved to the steplength parameter!
+//const dReal STEP_LENGTH        = 0.05; /// step length in radians
 const int   MAX_NUM_ATTACHEDIKSOLS = 30; /// if attached IK solver gives too many solutions for a single query, sample this many from the set
 
 const int   UNDEFINED          = -1;
@@ -299,14 +300,14 @@ bool CBirrtPlanner::InitPlan(RobotBasePtr  pbase, PlannerParametersConstPtr ppar
         assert(_validRange[i] > 0);
     }
 
-    _pForwardTree->_pMakeNext = new MakeNext(_pForwardTree->GetFromGoal(),GetNumDOF(),_pRobot,this);
-    _pBackwardTree->_pMakeNext = new MakeNext(_pBackwardTree->GetFromGoal(),GetNumDOF(),_pRobot,this);
+    _pForwardTree->_pMakeNext = new MakeNext(_pForwardTree->GetFromGoal(),GetNumDOF(),_pRobot,this,_parameters->steplength);
+    _pBackwardTree->_pMakeNext = new MakeNext(_pBackwardTree->GetFromGoal(),GetNumDOF(),_pRobot,this,_parameters->steplength);
 
     RAVELOG_INFO("grabbed: %d\n",_parameters->bgrabbed);
 
 
     bSmoothPath = _parameters->bsmoothpath;
-
+    bdofresl2norm = _parameters->bdofresl2norm;
 
     _pIkSolver = RaveCreateIkSolver(GetEnv(),"GeneralIK");
     _pIkSolver->Init(_pRobot->GetActiveManipulator());
@@ -1044,10 +1045,22 @@ bool CBirrtPlanner::_CheckCollision(std::vector<dReal>& pQ0, std::vector<dReal>&
 
   // compute  the discretization
   int i, numSteps = 1;
-  for (i = 0; i < GetNumDOF(); i++) {
-    int steps = (int)(fabs(pQ1[i] - pQ0[i]) * _jointResolutionInv[i]);
-    if (steps > numSteps)
-      numSteps = steps;
+  if (!bdofresl2norm) {
+    // L-infinity norm
+    for (i = 0; i < GetNumDOF(); i++) {
+      int steps = (int) ceil(fabs(pQ1[i] - pQ0[i]) * _jointResolutionInv[i]);
+      if (steps > numSteps)
+        numSteps = steps;
+    }
+  } else {
+    // L-2 norm
+    dReal steps_dist2 = 0.0;
+    for (i = 0; i < GetNumDOF(); i++) {
+      steps_dist2 += pow((pQ1[i] - pQ0[i]) * _jointResolutionInv[i], 2.0);
+    }
+    numSteps = (int) ceil(sqrt(steps_dist2));
+    if (!(1 <= numSteps))
+      numSteps = 1;
   }
   //cerr << "CheckCollision: number of steps: " << numSteps << endl;
 
@@ -1426,12 +1439,13 @@ dReal CBirrtPlanner::CBirrtDistanceMetric::Eval(const void* c0, const void* c1)
 }
 
 
-CBirrtPlanner::MakeNext::MakeNext(bool bFromGoal, int numdof, RobotBasePtr  robot, CBirrtPlanner * planner)
+CBirrtPlanner::MakeNext::MakeNext(bool bFromGoal, int numdof, RobotBasePtr  robot, CBirrtPlanner * planner, dReal steplength)
 {
     _bFromGoal = bFromGoal;
     _probot = robot; 
     _probot->GetActiveDOFLimits(_lowerLimit,_upperLimit);
-    _planner = planner;    
+    _planner = planner;
+    _steplength = steplength;
 
     diff.resize(numdof);
     dist.resize(numdof);
@@ -1518,7 +1532,7 @@ bool CBirrtPlanner::MakeNext::MakeNodes(int TreeSize, RrtNode* StartNode, std::v
         normDist = sqrt(normDist);
 
         //get new config
-        if(normDist < STEP_LENGTH)
+        if(normDist < _steplength)
         {
             targetReached = true;
             for (i = 0; i < numDOF; i++)
@@ -1543,7 +1557,7 @@ bool CBirrtPlanner::MakeNext::MakeNodes(int TreeSize, RrtNode* StartNode, std::v
         }
         else
             for (i = 0; i < numDOF; i++)
-                newConfig[i] = oldConfig[i] + (STEP_LENGTH * dist[i]/normDist);
+                newConfig[i] = oldConfig[i] + (_steplength * dist[i]/normDist);
 
         // code for handling constraints
         std::vector<dReal> q_near(numDOF);
@@ -1576,7 +1590,7 @@ bool CBirrtPlanner::MakeNext::MakeNodes(int TreeSize, RrtNode* StartNode, std::v
         bool bForwardBack = StartNode->GetFromGoal();
 
 
-        if(colnorm >= STEP_LENGTH - TINY || targetReached)
+        if(colnorm >= _steplength - TINY || targetReached)
         {
             if(planner->_CheckCollision(lastcollchecked,newConfig,OPEN_START))
             {
@@ -1599,7 +1613,7 @@ bool CBirrtPlanner::MakeNext::MakeNodes(int TreeSize, RrtNode* StartNode, std::v
             RAVELOG_DEBUG("Dist: %f\n",normDist);
             normDist = sqrt(normDist);
 
-            if(normDist < STEP_LENGTH)
+            if(normDist < _steplength)
             {
                 targetReached = true;
                 for (i = 0; i < numDOF; i++)
@@ -1620,7 +1634,7 @@ bool CBirrtPlanner::MakeNext::MakeNodes(int TreeSize, RrtNode* StartNode, std::v
 
 
         //if there is a significant configuration difference
-        if(colnorm >= STEP_LENGTH - TINY || targetReached)
+        if(colnorm >= _steplength - TINY || targetReached)
         {
 
             //create a node with this configuration
@@ -1802,7 +1816,7 @@ bool CBirrtPlanner::MakeNext::ConstrainedNewConfig(std::vector<dReal>& q_s, std:
                 totaltempdist += tempdist*tempdist; 
             }
 
-            if(sqrt(totaltempdist) > STEP_LENGTH*2)
+            if(sqrt(totaltempdist) > _steplength*2)
             {   
                 //PrintMatrix(&q_near[0], 1, q_near.size(), "q_near");        
                 //PrintMatrix(&q_s[0], 1, q_s.size(), "q_s");

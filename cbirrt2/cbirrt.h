@@ -92,6 +92,7 @@ public:
         __description = ":Interface Author: Dmitry Berenson\nRRT-based algorithm for planning with end-effector pose constraints described by Task Space Region Chains.\n\n`C++ Documentation <http://automation.berkeley.edu/~berenson/docs/cbirrt/index.html>`_";
         _pActiveNode = NULL;
         _pConnectNode = NULL;
+        bdofresl2norm = false;
 
         //these shouldn't be de-allocated so that multiple calls of this planner are faster
         _pForwardTree = new NodeTree(false);
@@ -132,7 +133,7 @@ public:
     class MakeNext
     {
     public:
-        MakeNext(bool bFromGoal, int numdof, RobotBasePtr  robot, CBirrtPlanner * planner);
+        MakeNext(bool bFromGoal, int numdof, RobotBasePtr  robot, CBirrtPlanner * planner, dReal steplength);
 
         ~MakeNext(){}
 
@@ -153,6 +154,7 @@ public:
         CBirrtPlanner * _planner;
         std::vector<dReal> _lowerLimit;
         std::vector<dReal> _upperLimit;
+        dReal _steplength;
         //variables for tree extension
         dReal* startConfig;
         bool bExtendConnect;
@@ -301,6 +303,7 @@ private:
     int projectioncalls;
 
     bool bSmoothPath;
+    bool bdofresl2norm;
 
     dReal P_SAMPLE_IK;
 
