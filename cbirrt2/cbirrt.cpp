@@ -98,6 +98,8 @@ OpenRAVE::PlannerStatus CBirrtPlanner::CleanUpReturn(bool retval)
     else
         return PS_Failed;
 
+    bakedkinbody.reset();
+    bakedchecker.reset();
 }
 
 
@@ -308,6 +310,42 @@ bool CBirrtPlanner::InitPlan(RobotBasePtr  pbase, PlannerParametersConstPtr ppar
 
     bSmoothPath = _parameters->bsmoothpath;
     bdofresl2norm = _parameters->bdofresl2norm;
+    bbakedcheckers = _parameters->bbakedcheckers;
+    
+    if (bbakedcheckers) {
+        bakedchecker = GetEnv()->GetCollisionChecker();
+        std::string bakedkinbody_type;
+        // get baked kinbody type (and verify that checker supports baking)
+        {
+            std::stringstream sinput("BakeGetType"), soutput;
+            try
+            {
+                if (!bakedchecker->SendCommand(soutput, sinput))
+                {
+                    _outputstream << "Error: collision checker doesn't support baked checks\n";
+                    return false;
+                }
+            }
+            catch (const OpenRAVE::openrave_exception & exc)
+            {
+                _outputstream << "Error: collision checker doesn't support baked checks\n";
+                return false;
+            }
+            bakedkinbody_type = soutput.str();
+        }
+        // do baking
+        {
+            std::stringstream sinput("BakeBegin BakeEnd"), soutput;
+            bakedchecker->SendCommand(soutput, sinput); // BakeBegin
+            bakedkinbody = OpenRAVE::RaveCreateKinBody(GetEnv(), bakedkinbody_type);
+            GetEnv()->CheckCollision(KinBodyConstPtr(_pRobot), sIgnoredBodies, sIgnoredLinks);
+            for(int i = 0; i < vMimicBodies.size(); i++) {
+                GetEnv()->CheckCollision(KinBodyConstPtr(vMimicBodies[i]), sIgnoredBodies, sIgnoredLinks);
+            }
+            _pRobot->CheckSelfCollision();
+            bakedchecker->SendCommand(soutput, sinput); // BakeEnd
+        }
+    }
 
     _pIkSolver = RaveCreateIkSolver(GetEnv(),"GeneralIK");
     _pIkSolver->Init(_pRobot->GetActiveManipulator());
@@ -336,6 +374,8 @@ bool CBirrtPlanner::InitPlan(RobotBasePtr  pbase, PlannerParametersConstPtr ppar
                 {
                     RAVELOG_INFO("CBirrtPlanner::InitPlan - Error: Starts are improperly specified.\n");
                     _outputstream << "Error: Starts are improperly specified\n";
+                    bakedkinbody.reset();
+                    bakedchecker.reset();
                     return false;
                 }
 
@@ -368,6 +408,8 @@ bool CBirrtPlanner::InitPlan(RobotBasePtr  pbase, PlannerParametersConstPtr ppar
                     _outputstream << "Error: Start configuration "<< num_starts << " is not in balance\n";
                 }
 
+                bakedkinbody.reset();
+                bakedchecker.reset();
                 return false;
             }
 
@@ -380,6 +422,8 @@ bool CBirrtPlanner::InitPlan(RobotBasePtr  pbase, PlannerParametersConstPtr ppar
                 s << endl;        
                 RAVELOG_INFO(s.str().c_str());
                 _outputstream << "Error: Start configuration in collision\n";
+                bakedkinbody.reset();
+                bakedchecker.reset();
                 return false;
             }
 
@@ -447,6 +491,8 @@ bool CBirrtPlanner::InitPlan(RobotBasePtr  pbase, PlannerParametersConstPtr ppar
                 {
                     RAVELOG_INFO("CBirrtPlanner::InitPlan - Error: goals are improperly specified.\n");
                     _outputstream << "Error: goals are improperly specified\n";
+                    bakedkinbody.reset();
+                    bakedchecker.reset();
                     return false;
                 }
                 goal_index++;
@@ -476,6 +522,8 @@ bool CBirrtPlanner::InitPlan(RobotBasePtr  pbase, PlannerParametersConstPtr ppar
                     _outputstream << "Error: Goal configuration "<< num_goals << " is not in balance\n";
                 }
 
+                bakedkinbody.reset();
+                bakedchecker.reset();
                 return false;
             }
 
@@ -516,6 +564,8 @@ bool CBirrtPlanner::InitPlan(RobotBasePtr  pbase, PlannerParametersConstPtr ppar
         {
           RAVELOG_DEBUG("Could not initialize Goal Configuration\n");
           _outputstream << "Could not initialize Goal Configuration\n";
+          bakedkinbody.reset();
+          bakedchecker.reset();
           return false;
         }
     }
@@ -959,6 +1009,15 @@ bool CBirrtPlanner::_CheckCollision(std::vector<dReal>& pConfig)
 #endif
 
     SetDOF(pConfig);
+    
+    if (bbakedcheckers)
+    {
+        bool collided = bakedchecker->CheckStandaloneSelfCollision(bakedkinbody);
+#ifdef RECORD_TIMES
+        collisionchecktime += timeGetThreadTime() - starttime;
+#endif
+        return collided;
+    }
 
     CollisionReportPtr preport(new CollisionReport());
 
