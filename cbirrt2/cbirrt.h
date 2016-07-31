@@ -305,6 +305,10 @@ private:
     bool bSmoothPath;
     bool bdofresl2norm;
 
+    bool bbakedcheckers;
+    OpenRAVE::CollisionCheckerBasePtr bakedchecker;
+    OpenRAVE::KinBodyPtr bakedkinbody;
+
     dReal P_SAMPLE_IK;
 
   

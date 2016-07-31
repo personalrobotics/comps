@@ -41,7 +41,7 @@ public:
         smoothingitrs(-1), bsamplingstart(false), bsamplinggoal(false),
         timelimit(-1.0), bProcessing(false),
         bikfastsinglesolution(true), pplannerstate(0),
-        steplength(0.05), bdofresl2norm(false)
+        steplength(0.05), bdofresl2norm(false), bbakedcheckers(false)
     {
         _vXMLParameters.push_back("tsrchain");
         _vXMLParameters.push_back("grabbed");
@@ -59,6 +59,7 @@ public:
         _vXMLParameters.push_back("pplannerstate");
         _vXMLParameters.push_back("steplength");
         _vXMLParameters.push_back("bdofresl2norm");
+        _vXMLParameters.push_back("bbakedcheckers");
 
     }
     bool bgrabbed; ///< are we grabbing an object?
@@ -86,6 +87,7 @@ public:
 
     dReal steplength;
     bool bdofresl2norm; ///< use the L2 norm (instead of the default L-infinity norm) for dof resolutions
+    bool bbakedcheckers; ///< use the baked collision checking interface (e.g. from or_fcl)
 
 protected:
     bool bProcessing;
@@ -164,6 +166,7 @@ protected:
 
         O << "<steplength>" << steplength << "</steplength>" << endl;
         O << "<bdofresl2norm>" << bdofresl2norm << "</bdofresl2norm>" << endl;
+        O << "<bbakedcheckers>" << bbakedcheckers << "</bbakedcheckers>" << endl;
 
         O.precision(old_precision);
         return !!O;
@@ -196,7 +199,8 @@ protected:
                        name == "bikfastsinglesolution" ||
                        name == "pplannerstate" ||
                        name == "steplength" ||
-                       name == "bdofresl2norm");
+                       name == "bdofresl2norm" ||
+                       name == "bbakedcheckers");
 
         return bProcessing ? PE_Support : PE_Pass;
     }
@@ -309,6 +313,10 @@ protected:
             else if( stricmp(name.c_str(), "bdofresl2norm") == 0 )
             {
                 _ss >> bdofresl2norm;
+            }
+            else if( stricmp(name.c_str(), "bbakedcheckers") == 0 )
+            {
+                _ss >> bbakedcheckers;
             }
             else
             {
